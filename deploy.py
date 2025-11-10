@@ -2,7 +2,6 @@ import os
 from typing import Any
 
 import modal
-from vllm import LLM, SamplingParams
 
 from app.core.logger import logger
 
@@ -95,6 +94,7 @@ class Modal:
     @modal.enter(snap=snap)
     def start(self) -> None:
         from langfuse import Langfuse
+        from vllm import LLM, SamplingParams
 
         from app.core.logger import logger
         from app.service.caption_service import CaptionService
@@ -121,6 +121,9 @@ class Modal:
         )
 
         logger.info("vLLM 引擎初始化完成")
+
+        _ = self.llm.generate(["hi"], SamplingParams(max_tokens=1, temperature=0.0))
+        logger.info("vLLM 引擎热身完成")
 
         self.treatment_service = TreatmentService(
             llm=self.llm,
@@ -153,9 +156,6 @@ class Modal:
 
     @modal.fastapi_endpoint(method="GET", requires_proxy_auth=True)
     def health(self) -> dict[str, str]:
-        _ = self.llm.generate(["hi"], SamplingParams(max_tokens=1, temperature=0.0))
-        logger.info("vLLM 引擎热身完成")
-
         return {"status": 200}
 
     @modal.fastapi_endpoint(method="POST", requires_proxy_auth=True)
