@@ -155,7 +155,7 @@ class Modal:
         langfuse.shutdown()
 
     @modal.fastapi_endpoint(method="GET", requires_proxy_auth=True)
-    def health(self) -> dict[str, str]:
+    def health(self) -> dict[str, int]:
         return {"status": 200}
 
     @modal.fastapi_endpoint(method="POST", requires_proxy_auth=True)
