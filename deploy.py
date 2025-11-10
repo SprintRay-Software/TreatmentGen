@@ -2,7 +2,6 @@ import os
 from typing import Any
 
 import modal
-from langfuse import Langfuse
 from vllm import LLM, SamplingParams
 
 from app.core.logger import logger
@@ -59,12 +58,12 @@ image = (
         "vllm==0.11.0",
         "torch==2.8.0",
         "flashinfer-python==0.3.1",
-        "aiohttp",
-        "loguru",
+        "aiohttp>=3.13.1",
+        "loguru>=0.7.3",
         "hf-xet==1.1.5",
-        "tenacity",
-        "langfuse",
-        "fastapi[standard]",
+        "tenacity>=9.1.2",
+        "langfuse>=3.9.1",
+        "fastapi[standard]>=0.121.0",
         "huggingface_hub[hf_transfer]==0.35.0",
     )
     .env(
@@ -95,6 +94,8 @@ app = modal.App("treatment-generation")
 class Modal:
     @modal.enter(snap=snap)
     def start(self) -> None:
+        from langfuse import Langfuse
+
         from app.core.logger import logger
         from app.service.caption_service import CaptionService
         from app.service.treatment_service import TreatmentService
