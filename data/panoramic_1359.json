@@ -1,0 +1,740 @@
+{
+    "properties": {
+        "Teeth": [
+            {
+                "tooth_id": "36",
+                "quadrant": 3,
+                "is_wisdom_tooth": false,
+                "side": "lower left",
+                "bbox": [
+                    319,
+                    138,
+                    355,
+                    178
+                ],
+                "center": [
+                    337.0,
+                    158.0
+                ],
+                "score": 0.94,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "34",
+                "quadrant": 3,
+                "is_wisdom_tooth": false,
+                "side": "lower left",
+                "bbox": [
+                    292,
+                    148,
+                    310,
+                    185
+                ],
+                "center": [
+                    301.0,
+                    166.0
+                ],
+                "score": 0.93,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "35",
+                "quadrant": 3,
+                "is_wisdom_tooth": false,
+                "side": "lower left",
+                "bbox": [
+                    305,
+                    145,
+                    330,
+                    187
+                ],
+                "center": [
+                    317.0,
+                    166.0
+                ],
+                "score": 0.92,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "32",
+                "quadrant": 3,
+                "is_wisdom_tooth": false,
+                "side": "lower left",
+                "bbox": [
+                    269,
+                    150,
+                    279,
+                    184
+                ],
+                "center": [
+                    274.0,
+                    167.0
+                ],
+                "score": 0.91,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "44",
+                "quadrant": 4,
+                "is_wisdom_tooth": false,
+                "side": "lower right",
+                "bbox": [
+                    209,
+                    145,
+                    225,
+                    188
+                ],
+                "center": [
+                    217.0,
+                    167.0
+                ],
+                "score": 0.9,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "43",
+                "quadrant": 4,
+                "is_wisdom_tooth": false,
+                "side": "lower right",
+                "bbox": [
+                    222,
+                    148,
+                    237,
+                    190
+                ],
+                "center": [
+                    230.0,
+                    169.0
+                ],
+                "score": 0.9,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "14",
+                "quadrant": 1,
+                "is_wisdom_tooth": false,
+                "side": "upper right",
+                "bbox": [
+                    206,
+                    95,
+                    225,
+                    139
+                ],
+                "center": [
+                    216.0,
+                    117.0
+                ],
+                "score": 0.9,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "38",
+                "quadrant": 3,
+                "is_wisdom_tooth": true,
+                "side": "lower left",
+                "bbox": [
+                    366,
+                    123,
+                    398,
+                    160
+                ],
+                "center": [
+                    382.0,
+                    141.0
+                ],
+                "score": 0.9,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "25",
+                "quadrant": 2,
+                "is_wisdom_tooth": false,
+                "side": "upper left",
+                "bbox": [
+                    315,
+                    95,
+                    332,
+                    137
+                ],
+                "center": [
+                    323.0,
+                    116.0
+                ],
+                "score": 0.9,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "33",
+                "quadrant": 3,
+                "is_wisdom_tooth": false,
+                "side": "lower left",
+                "bbox": [
+                    279,
+                    148,
+                    295,
+                    187
+                ],
+                "center": [
+                    287.0,
+                    168.0
+                ],
+                "score": 0.89,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "41",
+                "quadrant": 4,
+                "is_wisdom_tooth": false,
+                "side": "lower right",
+                "bbox": [
+                    248,
+                    150,
+                    260,
+                    183
+                ],
+                "center": [
+                    254.0,
+                    167.0
+                ],
+                "score": 0.89,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "26",
+                "quadrant": 2,
+                "is_wisdom_tooth": false,
+                "side": "upper left",
+                "bbox": [
+                    329,
+                    92,
+                    352,
+                    133
+                ],
+                "center": [
+                    341.0,
+                    112.0
+                ],
+                "score": 0.89,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "42",
+                "quadrant": 4,
+                "is_wisdom_tooth": false,
+                "side": "lower right",
+                "bbox": [
+                    236,
+                    150,
+                    249,
+                    182
+                ],
+                "center": [
+                    243.0,
+                    166.0
+                ],
+                "score": 0.88,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "22",
+                "quadrant": 2,
+                "is_wisdom_tooth": false,
+                "side": "upper left",
+                "bbox": [
+                    278,
+                    101,
+                    291,
+                    142
+                ],
+                "center": [
+                    284.0,
+                    122.0
+                ],
+                "score": 0.87,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "24",
+                "quadrant": 2,
+                "is_wisdom_tooth": false,
+                "side": "upper left",
+                "bbox": [
+                    304,
+                    95,
+                    319,
+                    140
+                ],
+                "center": [
+                    311.0,
+                    118.0
+                ],
+                "score": 0.87,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "23",
+                "quadrant": 2,
+                "is_wisdom_tooth": false,
+                "side": "upper left",
+                "bbox": [
+                    291,
+                    94,
+                    306,
+                    143
+                ],
+                "center": [
+                    298.0,
+                    118.0
+                ],
+                "score": 0.87,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "16",
+                "quadrant": 1,
+                "is_wisdom_tooth": false,
+                "side": "upper right",
+                "bbox": [
+                    170,
+                    89,
+                    199,
+                    132
+                ],
+                "center": [
+                    184.0,
+                    111.0
+                ],
+                "score": 0.86,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "45",
+                "quadrant": 4,
+                "is_wisdom_tooth": false,
+                "side": "lower right",
+                "bbox": [
+                    194,
+                    142,
+                    212,
+                    187
+                ],
+                "center": [
+                    203.0,
+                    164.0
+                ],
+                "score": 0.86,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "15",
+                "quadrant": 1,
+                "is_wisdom_tooth": false,
+                "side": "upper right",
+                "bbox": [
+                    193,
+                    94,
+                    211,
+                    135
+                ],
+                "center": [
+                    202.0,
+                    115.0
+                ],
+                "score": 0.86,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "13",
+                "quadrant": 1,
+                "is_wisdom_tooth": false,
+                "side": "upper right",
+                "bbox": [
+                    220,
+                    93,
+                    236,
+                    142
+                ],
+                "center": [
+                    228.0,
+                    117.0
+                ],
+                "score": 0.86,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "17",
+                "quadrant": 1,
+                "is_wisdom_tooth": false,
+                "side": "upper right",
+                "bbox": [
+                    148,
+                    85,
+                    174,
+                    125
+                ],
+                "center": [
+                    161.0,
+                    105.0
+                ],
+                "score": 0.86,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "11",
+                "quadrant": 1,
+                "is_wisdom_tooth": false,
+                "side": "upper right",
+                "bbox": [
+                    245,
+                    93,
+                    261,
+                    145
+                ],
+                "center": [
+                    253.0,
+                    119.0
+                ],
+                "score": 0.86,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "31",
+                "quadrant": 3,
+                "is_wisdom_tooth": false,
+                "side": "lower left",
+                "bbox": [
+                    258,
+                    149,
+                    270,
+                    183
+                ],
+                "center": [
+                    264.0,
+                    166.0
+                ],
+                "score": 0.85,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "12",
+                "quadrant": 1,
+                "is_wisdom_tooth": false,
+                "side": "upper right",
+                "bbox": [
+                    233,
+                    100,
+                    249,
+                    142
+                ],
+                "center": [
+                    241.0,
+                    121.0
+                ],
+                "score": 0.85,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "37",
+                "quadrant": 3,
+                "is_wisdom_tooth": false,
+                "side": "lower left",
+                "bbox": [
+                    342,
+                    130,
+                    377,
+                    169
+                ],
+                "center": [
+                    360.0,
+                    150.0
+                ],
+                "score": 0.83,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "21",
+                "quadrant": 2,
+                "is_wisdom_tooth": false,
+                "side": "upper left",
+                "bbox": [
+                    262,
+                    96,
+                    278,
+                    145
+                ],
+                "center": [
+                    270.0,
+                    121.0
+                ],
+                "score": 0.82,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "28",
+                "quadrant": 2,
+                "is_wisdom_tooth": true,
+                "side": "upper left",
+                "bbox": [
+                    363,
+                    84,
+                    389,
+                    124
+                ],
+                "center": [
+                    376.0,
+                    104.0
+                ],
+                "score": 0.8,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "46",
+                "quadrant": 4,
+                "is_wisdom_tooth": false,
+                "side": "lower right",
+                "bbox": [
+                    171,
+                    139,
+                    198,
+                    181
+                ],
+                "center": [
+                    185.0,
+                    160.0
+                ],
+                "score": 0.77,
+                "conditions": {
+                    "Implant": {
+                        "present": true,
+                        "bbox": [
+                            173,
+                            155,
+                            188,
+                            180
+                        ],
+                        "score": 0.73,
+                        "iou": 0.33
+                    },
+                    "Crown": {
+                        "present": true,
+                        "bbox": [
+                            177,
+                            141,
+                            199,
+                            157
+                        ],
+                        "segmentation": {
+                            "size": [
+                                256,
+                                512
+                            ],
+                            "counts": "_\\\\16i74L3N10O01O001O000001O00001N1O1O2O0O1O2N1O1O_k]2"
+                        },
+                        "score": 0.46,
+                        "iou": 0.29
+                    },
+                    "Filling": {
+                        "present": true,
+                        "bbox": [
+                            178,
+                            141,
+                            197,
+                            157
+                        ],
+                        "score": 0.33,
+                        "iou": 0.27
+                    }
+                }
+            },
+            {
+                "tooth_id": "47",
+                "quadrant": 4,
+                "is_wisdom_tooth": false,
+                "side": "lower right",
+                "bbox": [
+                    139,
+                    129,
+                    180,
+                    169
+                ],
+                "center": [
+                    160.0,
+                    149.0
+                ],
+                "score": 0.73,
+                "conditions": {}
+            },
+            {
+                "tooth_id": "27",
+                "quadrant": 2,
+                "is_wisdom_tooth": false,
+                "side": "upper left",
+                "bbox": [
+                    349,
+                    91,
+                    373,
+                    128
+                ],
+                "center": [
+                    361.0,
+                    109.0
+                ],
+                "score": 0.72,
+                "conditions": {}
+            }
+        ],
+        "Quadrants": [
+            {
+                "quadrant": "Quadrant 1",
+                "present": true,
+                "bbox": [
+                    123,
+                    73,
+                    263,
+                    150
+                ],
+                "segmentation": {
+                    "size": [
+                        256,
+                        512
+                    ],
+                    "counts": "Uco0=a73L4J6N2N1K6K5N1O1O2O0O2O00001O001O0O101O00001O0000001O000O101O01O0001O00001O00000010O0001O00001O0000001O00001O00001O000010O0001O000000010O00001O0000001O0000000010O00000001O0000000010O000000000001O000000001O01O000001O0001O000000010O000010O000000001O00000000001O01O0O2O1M=ZNfINZ\\n1"
+                },
+                "score": 0.94
+            },
+            {
+                "quadrant": "Quadrant 3",
+                "present": true,
+                "bbox": [
+                    259,
+                    116,
+                    419,
+                    208
+                ],
+                "segmentation": {
+                    "size": [
+                        256,
+                        512
+                    ],
+                    "counts": "hlP23k7b0@<C?B8H1O1O000000000O10O100000000000O100000O1000000O10O10000000000O01000000000O10O1000000000O10O1000O10O1000O10000000O0100000O010O10O1000O10O1000000O10O1000O010000O010000O10O100O010O100O010O10O01000O01000O01000O0100O00100O01000O010O10O0100O01000O010O010000O010O10O100O10O0100O011N102M3N2M2N3N1N3N2M4L7J1M2L5GjSh0"
+                },
+                "score": 0.94
+            },
+            {
+                "quadrant": "Quadrant 4",
+                "present": true,
+                "bbox": [
+                    112,
+                    116,
+                    263,
+                    212
+                ],
+                "segmentation": {
+                    "size": [
+                        256,
+                        512
+                    ],
+                    "counts": "eTm0:c75K5[Oe0J5N3M2N2N2O1O1O010O1O10O01O100O00100O010O010O0010O010O01O01O01O010O001O010O001O010O00010O0001O01O01O01O01O01O01O01O0001O01O01O01O01O00010O00001O0001O01O01O00010O0000010O00000010O000000001O00000001O01O0001O00000001O0001O01O000000001O00000001O0000000010O00000001O0000000001O01O01O00d0[O=B=@TRn1"
+                },
+                "score": 0.95
+            },
+            {
+                "quadrant": "Quadrant 2",
+                "present": true,
+                "bbox": [
+                    261,
+                    73,
+                    400,
+                    150
+                ],
+                "segmentation": {
+                    "size": [
+                        256,
+                        512
+                    ],
+                    "counts": "`\\Q25V63mIX1n5?O1O01000000000O10O10O100000000000O100000000000O010000000O10O10O10000000O101O000000O10O100000000O100000000O100000O10O10000O100000O10O10000O1000000O1000000O1000O10O1000000O1000000O10000O10000O10000O0100000O1000O010000O10000O10000O101O0O101O1N2O001N2O3M4K3N2M4M3M3L4L7Icdl0"
+                },
+                "score": 0.93
+            }
+        ],
+        "Missing teeth": [],
+        "JawBones": [
+            {
+                "conditions": {
+                    "Maxillary sinus": {
+                        "bbox": [
+                            [
+                                297,
+                                8,
+                                390,
+                                103
+                            ],
+                            [
+                                131,
+                                8,
+                                232,
+                                102
+                            ]
+                        ],
+                        "segmentation": [
+                            {
+                                "size": [
+                                    256,
+                                    512
+                                ],
+                                "counts": "UiZ2>l0Ec5b0VJFc5?XJFd5?VJEh5>QJHm5W1O1O1O001N2O00001O00001OO011O000O2O1O01O3M1O1O10O01O00000000001OO100000001O000O0100O10O01000O100O100O2O0O100O101N010O10O010O0HQN_JQ2b552N100O10O1O1O001O1N2O1O001O01O;F3L3M8G6]ObIYO`mn0"
+                            },
+                            {
+                                "size": [
+                                    256,
+                                    512
+                                ],
+                                "counts": "UjP14b7?E7J6K5K5L3L5M2M3L4J6L4O2N1O3N4L3NO10001O0O101N1O1N2O1O1N101O1O001N101O010O1000O00100O0010O00001O1O1O1O1O00000000O1000O0100O2O0O1O001N2O1O0O2O1N2M3M3O0O20000O100001O001O001O000O101O0cNhJ1Z5LlJOV5OnJMS51QKLQ51SKKP51UKKd6Ke]V2"
+                            }
+                        ],
+                        "score": [
+                            0.86,
+                            0.83
+                        ]
+                    },
+                    "Mandibular canal": {
+                        "bbox": [
+                            [
+                                60,
+                                91,
+                                178,
+                                201
+                            ],
+                            [
+                                334,
+                                110,
+                                446,
+                                207
+                            ]
+                        ],
+                        "segmentation": [
+                            {
+                                "size": [
+                                    256,
+                                    512
+                                ],
+                                "counts": "Wc?1m76J4M2O1N2N2N2O10000O11O001N10001O0000000001O000010O011O00O110O0001N1O01O0001O010O0000001N1000001O00000000001O0O100000000O100O10000O100O0010000O0100O10O010O010O100O10O0100O01O10O01O1O001O010O0010O0001O0100O001O1O001O1O1Nnad2"
+                            },
+                            {
+                                "size": [
+                                    256,
+                                    512
+                                ],
+                                "counts": "U^d28g71O100O100O001000O010O010O010O010O10O010O001O0010O100O0001O0001O10O10O10O00001O000001O00010O01O01O00001O01O0010OO2O000000000O10000000000O100000000O01000O100O010O10O010000O01000O1O010O1000000001N1O2O1N4M2M3Kbda0"
+                            }
+                        ],
+                        "score": [
+                            0.36,
+                            0.91
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}

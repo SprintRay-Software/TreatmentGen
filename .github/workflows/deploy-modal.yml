@@ -1,0 +1,160 @@
+name: Modal CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "Environment to promote (dev / stg / prod)"
+        required: true
+        type: choice
+        default: dev
+        options: [dev, stg, prod]
+
+env:
+  APP_NAME: TreatmentGen
+  PYTHON_VERSION: "3.12"
+  MODAL_VERSION: "1.2.1"
+
+jobs:
+  deploy_dev:
+    if: ${{ github.ref_name == 'dev' || (github.event_name == 'workflow_dispatch' && inputs.stage == 'dev') }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setver.outputs.version }}
+    environment: dev
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Modal CLI & jq
+        run: |
+          python -m pip install --upgrade pip
+          pip install "modal==${{ env.MODAL_VERSION }}" jq
+
+      - name: 🔐 Authenticate with Modal
+        run: |
+          modal token set --token-id "${{ secrets.MODAL_TOKEN_ID }}" --token-secret "${{ secrets.MODAL_TOKEN_SECRET }}"
+
+      - name: 🔖 Compute and tag today's version (yy.mm.dd.n)
+        id: setver
+        run: |
+          TODAY=$(date -u +'%y.%m.%d')
+          COUNT=$(git tag | grep "^$TODAY" | wc -l)
+          VERSION="$TODAY.$((COUNT+1))"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice ::Creating version $VERSION"
+
+      - name: 🔖 Create and push version tag
+        uses: mathieudutour/github-tag-action@v6.1
+        id: tagger
+        with:
+          custom_tag: ${{ steps.setver.outputs.version }}
+          tag_prefix: ""
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Deploy to dev
+        run: |
+          modal deploy deploy.py \
+            --name "$APP_NAME" \
+            -e dev \
+            --tag "${{ steps.setver.outputs.version }}"
+
+  promote_stg:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.stage == 'stg' }}
+    runs-on: ubuntu-latest
+    environment: stg
+
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 📦 Install Modal CLI v1.2.1 & jq
+        run: pip install "modal==1.2.1" jq
+
+      - name: 🔐 Authenticate with Modal
+        run: |
+          modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: 🔄 Promote latest dev tag to staging
+        run: |
+          VERSION=$(modal app history "$APP_NAME" -e dev --json | jq -r '.[0].tag // .[0].Tag // empty')
+          if [ -z "$VERSION" ]; then
+            echo "::error ::No version found to promote"
+            exit 1
+          fi
+
+          echo "::notice ::Checking out tag $VERSION"
+          git fetch origin "refs/tags/$VERSION:refs/tags/$VERSION"
+          git checkout "tags/$VERSION" || {
+            echo "::error ::Could not checkout tag $VERSION"; exit 1;
+          }
+
+          modal deploy deploy.py \
+            --name "$APP_NAME" \
+            -e stg \
+            --tag "$VERSION"
+
+  promote_prod:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.stage == 'prod' }}
+    runs-on: ubuntu-latest
+    environment: prod
+
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 📦 Install Modal CLI v1.2.1 & jq
+        run: pip install "modal==1.2.1" jq
+
+      - name: 🔐 Authenticate with Modal
+        run: |
+          modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+
+      - name: 🔄 Promote latest staging tag to prod
+        run: |
+          VERSION=$(modal app history "$APP_NAME" -e stg --json | jq -r '.[0].tag // .[0].Tag // empty')
+          if [ -z "$VERSION" ]; then
+            echo "::error ::No staging version found to promote"
+            exit 1
+          fi
+
+          echo "::notice ::Checking out tag $VERSION"
+          git fetch origin "refs/tags/$VERSION:refs/tags/$VERSION"
+          git checkout "tags/$VERSION" || {
+            echo "::error ::Could not checkout tag $VERSION"; exit 1;
+          }
+
+          modal deploy deploy.py \
+            --name "$APP_NAME" \
+            -e prod \
+            --tag "$VERSION"
