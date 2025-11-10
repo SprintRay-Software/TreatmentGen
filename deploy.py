@@ -3,8 +3,6 @@ from typing import Any
 
 import modal
 
-from app.core.logger import logger
-
 MINUTES = 60
 CPU = 16.0
 MEMORY = 32000
@@ -145,6 +143,8 @@ class Modal:
     @modal.exit()
     def shuntdown(self) -> None:
         from langfuse import get_client
+
+        from app.core.logger import logger
 
         logger.info("释放 vLLM & Langfuse 资源")
 
