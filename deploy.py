@@ -1,4 +1,5 @@
 import os
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 import modal
@@ -74,23 +75,13 @@ image = (
 
 app = modal.App("treatment-generation")
 
+_services: dict[str, Any] | None = None
 
-@app.cls(
-    image=image,
-    cpu=CPU,
-    memory=MEMORY,
-    gpu=f"L40S:{N_GPU}",
-    enable_memory_snapshot=snap,
-    experimental_options={"enable_gpu_snapshot": snap},
-    scaledown_window=3 * MINUTES,
-    timeout=10 * MINUTES,
-    volumes=volumes,
-    secrets=[modal.Secret.from_name("langfuse")],
-)
-@modal.concurrent(max_inputs=3)
-class Modal:
-    @modal.enter(snap=snap)
-    def start(self) -> None:
+
+def _get_services() -> dict[str, Any]:
+    global _services
+
+    if _services is None:
         from langfuse import Langfuse
         from vllm import LLM, SamplingParams
 
@@ -100,7 +91,7 @@ class Modal:
 
         logger.info(f"初始化 vLLM 引擎: {MODEL_NAME}")
 
-        self.llm = LLM(
+        llm = LLM(
             model=MODEL_NAME,
             revision=MODEL_REVISION,
             max_model_len=MAX_MODEL_LEN,
@@ -110,7 +101,7 @@ class Modal:
             trust_remote_code=True,
         )
 
-        self.sampling_params = SamplingParams(
+        sampling_params = SamplingParams(
             temperature=0.7,
             top_p=1,
             repetition_penalty=1,
@@ -120,14 +111,14 @@ class Modal:
 
         logger.info("vLLM 引擎初始化完成")
 
-        _ = self.llm.generate(["hi"], SamplingParams(max_tokens=1, temperature=0.0))
+        _ = llm.generate(["hi"], SamplingParams(max_tokens=1, temperature=0.0))
         logger.info("vLLM 引擎热身完成")
 
-        self.treatment_service = TreatmentService(
-            llm=self.llm,
-            sampling_params=self.sampling_params,
+        treatment_service = TreatmentService(
+            llm=llm,
+            sampling_params=sampling_params,
         )
-        self.caption_service = CaptionService()
+        caption_service = CaptionService()
 
         langfuse = Langfuse(
             public_key=os.getenv("public_key"),
@@ -140,33 +131,117 @@ class Modal:
         else:
             logger.error("Langfuse 认证失败")
 
-    @modal.exit()
-    def shuntdown(self) -> None:
-        from langfuse import get_client
+        _services = {
+            "treatment_service": treatment_service,
+            "caption_service": caption_service,
+        }
 
-        from app.core.logger import logger
+    return _services
 
-        logger.info("释放 vLLM & Langfuse 资源")
 
-        del self.llm
-        del self.sampling_params
+@app.function(
+    image=image,
+    cpu=CPU,
+    memory=MEMORY,
+    gpu=f"L40S:{N_GPU}",
+    enable_memory_snapshot=snap,
+    experimental_options={"enable_gpu_snapshot": snap},
+    scaledown_window=3 * MINUTES,
+    timeout=10 * MINUTES,
+    volumes=volumes,
+    secrets=[
+        modal.Secret.from_name("langfuse"),
+        modal.Secret.from_name("modal-auth"),
+    ],
+)
+@modal.asgi_app()
+def fastapi_app():
+    from fastapi import FastAPI, Request, status
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import JSONResponse, Response
+    from starlette.middleware.base import BaseHTTPMiddleware
 
-        langfuse = get_client()
-        langfuse.shutdown()
+    from app.core.logger import logger
 
-    @modal.fastapi_endpoint(method="GET", requires_proxy_auth=True)
-    def health(self) -> dict[str, int]:
+    web_app = FastAPI()
+
+    # 配置 CORS 中间件
+    web_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*", "X-Modal-Key", "X-Modal-Secret"],
+    )
+
+    VALID_MODAL_KEY = os.getenv("modal_key", "")
+    VALID_MODAL_SECRET = os.getenv("modal_secret", "")
+
+    if not VALID_MODAL_KEY or not VALID_MODAL_SECRET:
+        import warnings
+
+        warnings.warn(
+            "MODAL_KEY or MODAL_SECRET not configured. "
+            "Authentication will be disabled. "
+            "Please configure these values in Modal Secret 'modal-auth'.",
+            stacklevel=2,
+        )
+
+    class ModalAuthMiddleware(BaseHTTPMiddleware):
+        async def dispatch(
+            self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+        ):
+            if request.method == "OPTIONS":
+                return await call_next(request)
+
+            if not VALID_MODAL_KEY or not VALID_MODAL_SECRET:
+                return await call_next(request)
+
+            modal_key = request.headers.get("X-Modal-Key", "")
+            modal_secret = request.headers.get("X-Modal-Secret", "")
+            logger.info(request.headers)
+
+            if not modal_key or not modal_secret:
+                return JSONResponse(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    content={"detail": "Modal-Key and Modal-Secret headers are required."},
+                )
+
+            if modal_key != VALID_MODAL_KEY or modal_secret != VALID_MODAL_SECRET:
+                return JSONResponse(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    content={"detail": "Invalid Modal-Key or Modal-Secret. Authentication failed."},
+                )
+
+            return await call_next(request)
+
+    web_app.add_middleware(ModalAuthMiddleware)
+
+    @web_app.options("/health")
+    async def preflight_health():
+        return Response(status_code=200)
+
+    @web_app.options("/generate")
+    async def preflight_generate():
+        return Response(status_code=200)
+
+    @web_app.get("/health")
+    async def health() -> dict[str, Any]:
+        _get_services()
         return {"status": 200}
 
-    @modal.fastapi_endpoint(method="POST", requires_proxy_auth=True)
-    async def generate(
-        self,
-        payload: dict[str, Any] | list[dict[str, Any]],
-        treatment_out_dir: str = TREATMENT_OUTPUT_DIR,
-        caption_out_dir: str = CAPTION_OUTPUT_DIR,
-    ) -> list[dict[str, Any]]:
-        captions = self.caption_service.batch_caption_generate(payload, caption_out_dir)
-        treatments = await self.treatment_service.batch_treatment_generate(
-            captions, treatment_out_dir
+    @web_app.post("/generate")
+    async def generate(request: Request) -> list[dict[str, Any]]:
+        payload: dict[str, Any] | list[dict[str, Any]] = await request.json()
+
+        services = _get_services()
+        treatment_service = services["treatment_service"]
+        caption_service = services["caption_service"]
+
+        captions = caption_service.batch_caption_generate(payload, CAPTION_OUTPUT_DIR)
+        treatments = await treatment_service.batch_treatment_generate(
+            captions, TREATMENT_OUTPUT_DIR
         )
+
         return treatments
+
+    return web_app
