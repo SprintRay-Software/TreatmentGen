@@ -30,7 +30,7 @@ cuda_version = "12.8.0"
 flavor = "devel"
 operating_sys = "ubuntu22.04"
 tag = f"{cuda_version}-{flavor}-{operating_sys}"
-snap = False
+snap = True
 
 
 def download_model():
@@ -147,7 +147,7 @@ def _get_services() -> dict[str, Any]:
     enable_memory_snapshot=snap,
     experimental_options={"enable_gpu_snapshot": snap},
     scaledown_window=3 * MINUTES,
-    timeout=10 * MINUTES,
+    timeout=2 * MINUTES,
     volumes=volumes,
     secrets=[
         modal.Secret.from_name("langfuse"),
