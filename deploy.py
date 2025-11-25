@@ -147,7 +147,7 @@ def _get_services() -> dict[str, Any]:
     enable_memory_snapshot=snap,
     experimental_options={"enable_gpu_snapshot": snap},
     scaledown_window=3 * MINUTES,
-    timeout=2 * MINUTES,
+    timeout=3 * MINUTES,
     volumes=volumes,
     secrets=[
         modal.Secret.from_name("langfuse"),
