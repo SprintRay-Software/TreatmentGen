@@ -5,6 +5,10 @@ build/
 dist/
 wheels/
 *.egg-info
+*.log
 
 # Virtual environments
 .venv
+usage_test.py
+.gitignore
+deploy_test.py

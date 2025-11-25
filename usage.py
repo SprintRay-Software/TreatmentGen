@@ -12,8 +12,8 @@ TOKEN_SECRET = ""
 APP_URL = ""
 HEADERS = {
     "Content-Type": "application/json",
-    "Modal-Key": TOKEN_ID,
-    "Modal-Secret": TOKEN_SECRET,
+    "X-Modal-Key": TOKEN_ID,
+    "X-Modal-Secret": TOKEN_SECRET,
 }
 
 
