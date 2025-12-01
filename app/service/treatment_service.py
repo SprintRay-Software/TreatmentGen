@@ -109,7 +109,9 @@ class TreatmentService:
 
             refined_prompt = REVISION_PROMPT + "\n" + draft_body
             # refined_body = await self.online_inference(refined_prompt)
-            refined_body = await asyncio.to_thread(self.offline_inference, refined_prompt)
+            refined_body = await asyncio.to_thread(
+                self.offline_inference, prompt=refined_prompt, label="revision"
+            )
             if refined_body:
                 logger.info("Refined 内容生成成功")
             else:
