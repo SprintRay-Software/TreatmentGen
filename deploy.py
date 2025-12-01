@@ -30,7 +30,7 @@ cuda_version = "12.8.0"
 flavor = "devel"
 operating_sys = "ubuntu22.04"
 tag = f"{cuda_version}-{flavor}-{operating_sys}"
-snap = True
+snap = False
 
 
 def download_model():
@@ -121,9 +121,9 @@ def _get_services() -> dict[str, Any]:
         caption_service = CaptionService()
 
         langfuse = Langfuse(
-            public_key=os.getenv("public_key"),
-            secret_key=os.getenv("secret_key"),
-            base_url=os.getenv("host"),
+            public_key=os.getenv("PUBLIC_KEY"),
+            secret_key=os.getenv("SECRET_KEY"),
+            base_url=os.getenv("HOST"),
         )
 
         if langfuse.auth_check():
@@ -134,6 +134,7 @@ def _get_services() -> dict[str, Any]:
         _services = {
             "treatment_service": treatment_service,
             "caption_service": caption_service,
+            "langfuse_service": langfuse,
         }
 
     return _services
@@ -173,17 +174,12 @@ def fastapi_app():
         allow_headers=["*", "X-Modal-Key", "X-Modal-Secret"],
     )
 
-    VALID_MODAL_KEY = os.getenv("modal_key", "")
-    VALID_MODAL_SECRET = os.getenv("modal_secret", "")
+    VALID_MODAL_KEY = os.getenv("MODAL_KEY", "")
+    VALID_MODAL_SECRET = os.getenv("MODAL_SECRET", "")
 
     if not VALID_MODAL_KEY or not VALID_MODAL_SECRET:
-        import warnings
-
-        warnings.warn(
-            "MODAL_KEY or MODAL_SECRET not configured. "
-            "Authentication will be disabled. "
-            "Please configure these values in Modal Secret 'modal-auth'.",
-            stacklevel=2,
+        logger.warning(
+            "MODAL_KEY 或 MODAL_SECRET 未配置。认证将失效。请在 Modal Secret 'modal-auth' 中配置这些值。"
         )
 
     class ModalAuthMiddleware(BaseHTTPMiddleware):
@@ -198,18 +194,20 @@ def fastapi_app():
 
             modal_key = request.headers.get("X-Modal-Key", "")
             modal_secret = request.headers.get("X-Modal-Secret", "")
-            logger.info(request.headers)
+            logger.info(f"X-Modal-Key: {modal_key}, X-Modal-Secret: {modal_secret}")
 
             if not modal_key or not modal_secret:
                 return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    content={"detail": "Modal-Key and Modal-Secret headers are required."},
+                    content={
+                        "detail": "X-Modal-Key 和 X-Modal-Secret 头是必需的，请查看是否已经正确提供。"
+                    },
                 )
 
             if modal_key != VALID_MODAL_KEY or modal_secret != VALID_MODAL_SECRET:
                 return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    content={"detail": "Invalid Modal-Key or Modal-Secret. Authentication failed."},
+                    content={"detail": "无效的 X-Modal-Key 或 X-Modal-Secret，认证失败。"},
                 )
 
             return await call_next(request)
@@ -236,10 +234,11 @@ def fastapi_app():
         services = _get_services()
         treatment_service = services["treatment_service"]
         caption_service = services["caption_service"]
+        langfuse_service = services["langfuse_service"]
 
         captions = caption_service.batch_caption_generate(payload, CAPTION_OUTPUT_DIR)
         treatments = await treatment_service.batch_treatment_generate(
-            captions, TREATMENT_OUTPUT_DIR
+            captions, TREATMENT_OUTPUT_DIR, langfuse_service
         )
 
         return treatments

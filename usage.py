@@ -20,19 +20,18 @@ HEADERS = {
 async def test(session, data, sem):
     # with open("./data/panoramic_1300.json", encoding="utf-8") as fp:
     #     data = json.load(fp)
-    async with sem:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(APP_URL, headers=HEADERS, json=data) as resp:
-                resp.raise_for_status()
-                try:
-                    result = await resp.json()
-                    logger.info(f"Result: {result}")
-                except json.JSONDecodeError as e:
-                    result = await resp.text()
-                    logger.error(f"Failed to decode JSON: {e}. Raw response: {result}")
+    async with sem, aiohttp.ClientSession() as session:  # noqa: SIM117
+        async with session.post(APP_URL, headers=HEADERS, json=data) as resp:
+            resp.raise_for_status()
+            try:
                 result = await resp.json()
+                logger.info(f"Result: {result}")
+            except json.JSONDecodeError as e:
+                result = await resp.text()
+                logger.error(f"Failed to decode JSON: {e}. Raw response: {result}")
+            result = await resp.json()
 
-                return result
+            return result
 
 
 async def batch_test(input_dir):

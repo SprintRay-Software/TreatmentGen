@@ -5,7 +5,7 @@ import time
 from typing import Any
 
 import aiohttp
-from langfuse import observe
+from langfuse import Langfuse, observe
 from vllm import LLM, SamplingParams
 
 from app.client import APIClient
@@ -13,7 +13,6 @@ from app.core.logger import logger
 from app.prompt.draft import DRAFT_PROMPT
 from app.prompt.example import INPUT_EXAMPLE, OUTPUT_EXAMPLE
 from app.prompt.revision import REVISION_PROMPT
-from app.prompt.treatment_en import TREATMENT_PROMPT
 
 schema = {
     "type": "object",
@@ -60,9 +59,7 @@ class TreatmentService:
     def offline_inference(self, prompt: str, label: str | None = None) -> str:
         tokenizer = self.llm.get_tokenizer()
         messages = [{"role": "user", "content": prompt}]
-        prompt = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
+        prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         if label == "revision":
             from vllm.sampling_params import StructuredOutputsParams
 
@@ -79,6 +76,7 @@ class TreatmentService:
 
         return (parts[1] if len(parts) == 2 else text).strip()
 
+    @observe(as_type="generation")
     async def online_inference(self, prompt: str) -> str:
         async with aiohttp.ClientSession() as session:
             client = APIClient(session=session)
@@ -93,6 +91,7 @@ class TreatmentService:
         self,
         sample: dict[str, Any],
         semaphore: asyncio.Semaphore,
+        langfuse: Langfuse,
     ) -> dict[str, Any]:
         async with semaphore:
             draft_prompt = DRAFT_PROMPT.format(
@@ -101,9 +100,7 @@ class TreatmentService:
                 input=sample["caption"],
             )
             # draft_body = await self.online_inference(draft_prompt)
-            draft_body = await asyncio.to_thread(
-                self.offline_inference, prompt=draft_prompt
-            )
+            draft_body = await asyncio.to_thread(self.offline_inference, draft_prompt)
             if draft_body:
                 logger.info("Draft 内容生成成功")
             else:
@@ -125,21 +122,39 @@ class TreatmentService:
                 refined_body.replace("```json", "").replace("```", "").strip()
             )
 
+            treatment_client = langfuse.get_prompt("treatment_en", label="latest")
+            TREATMENT_PROMPT = treatment_client.compile()
+
             if refined_body.get("need revision"):
-                treatment_prompt = TREATMENT_PROMPT.format(
-                    report=refined_body.get("Revised med report").get("Revised Report")
-                )
+                report_content = refined_body.get("Revised med report").get("Revised Report")
+                treatment_prompt = TREATMENT_PROMPT.format(report=report_content)
             else:
+                report_content = draft_body
                 treatment_prompt = TREATMENT_PROMPT.format(report=draft_body)
-            # treatment_body = await self.online_inference(treatment_prompt)
-            treatment_body = await asyncio.to_thread(
-                self.offline_inference, prompt=treatment_prompt
-            )
-            if treatment_body:
-                logger.info("Treatment 内容生成成功")
-            else:
-                logger.error("Treatment 内容生成失败")
-                raise Exception("Treatment 内容生成失败")
+
+            with langfuse.start_as_current_observation(
+                as_type="generation",
+                name="treatment_generation",
+                model=self.model_name or "unknown",
+                model_parameters={
+                    "max_tokens": 2048,
+                    "temperature": 0.6,
+                    "top_p": 1.0,
+                    "repetition_penalty": 1.0,
+                },
+                input={"report": report_content},
+                prompt=treatment_client,
+            ) as generation:
+                # treatment_body = await self.online_inference(treatment_prompt)
+                treatment_body = await asyncio.to_thread(self.offline_inference, treatment_prompt)
+
+                if treatment_body:
+                    logger.info("Treatment 内容生成成功")
+                else:
+                    logger.error("Treatment 内容生成失败")
+                    raise Exception("Treatment 内容生成失败")
+
+                generation.update(output=treatment_body)
 
             return {
                 "id": sample["id"],
@@ -150,12 +165,13 @@ class TreatmentService:
         self,
         captions: list[dict[str, Any]],
         treatment_out_dir: str,
+        langfuse: Langfuse,
         max_concurrent: int = 10,
     ) -> list[dict[str, Any]]:
         start = time.time()
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        tasks = [self.treatment_generate(sample, semaphore) for sample in captions]
+        tasks = [self.treatment_generate(sample, semaphore, langfuse) for sample in captions]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         os.makedirs(treatment_out_dir, exist_ok=True)
@@ -165,9 +181,7 @@ class TreatmentService:
                 logger.error(f"生成失败: {result}")
                 continue
 
-            output_path = os.path.join(
-                treatment_out_dir, f"treatment_{result['id']}.md"
-            )
+            output_path = os.path.join(treatment_out_dir, f"treatment_{result['id']}.md")
             with open(output_path, "w", encoding="utf-8") as fp:
                 fp.write(result["treatment"])
 

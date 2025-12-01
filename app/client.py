@@ -15,8 +15,8 @@ class APIClient:
         prompt: str,
         model_name: str,
         api_base: str,
-        max_tokens: int = 1024,
-        temperature: float = 0.7,
+        max_tokens: int = 2048,
+        temperature: float = 0.6,
         top_p: float = 1.0,
         repetition_penalty: float = 1.0,
     ) -> str | None:
