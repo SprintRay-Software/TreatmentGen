@@ -93,10 +93,11 @@ pip install -e .
 `deploy.py` 提供 Modal Serverless 部署示例：
 
 1. 确保已登录 Modal（`modal setup`）。
-2. 根据需求修改脚本中的 `MODEL_NAME`、`MODEL_REVISION`、资源配额等参数。
-3. 部署：
+2. 在 Modal Secret 中添加 modal-auth (MODAL_KEY & MODAL_SECRET) 和 langfuse (PUBLIC_KEY & SECRET_KEY & HOST)，确保大小写正确。
+3. 根据需求修改脚本中的 `MODEL_NAME`、`MODEL_REVISION`、资源配额等参数。
+4. 部署：
    ```bash
-   modal deploy deploy.py
+   modal deploy deploy.py -e dev
    ```
 
 ## HTTP 接口示例
