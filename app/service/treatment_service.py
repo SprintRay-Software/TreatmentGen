@@ -100,7 +100,7 @@ class TreatmentService:
                 input=sample["caption"],
             )
             # draft_body = await self.online_inference(draft_prompt)
-            draft_body = self.offline_inference(draft_prompt)
+            draft_body = await asyncio.to_thread(self.offline_inference, draft_prompt)
             if draft_body:
                 logger.info("Draft 内容生成成功")
             else:
@@ -109,7 +109,7 @@ class TreatmentService:
 
             refined_prompt = REVISION_PROMPT + "\n" + draft_body
             # refined_body = await self.online_inference(refined_prompt)
-            refined_body = self.offline_inference(refined_prompt)
+            refined_body = await asyncio.to_thread(self.offline_inference, refined_prompt)
             if refined_body:
                 logger.info("Refined 内容生成成功")
             else:
@@ -144,7 +144,7 @@ class TreatmentService:
                 prompt=treatment_client,
             ) as generation:
                 # treatment_body = await self.online_inference(treatment_prompt)
-                treatment_body = self.offline_inference(treatment_prompt)
+                treatment_body = await asyncio.to_thread(self.offline_inference, treatment_prompt)
 
                 if treatment_body:
                     logger.info("Treatment 内容生成成功")
