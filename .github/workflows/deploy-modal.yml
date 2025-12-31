@@ -1,9 +1,6 @@
-name: Modal CI/CD
+name: Modal CI/CD (TreatmentGen)
 
 on:
-  push:
-    branches:
-      - dev
   workflow_dispatch:
     inputs:
       stage:
@@ -15,8 +12,6 @@ on:
 
 env:
   APP_NAME: TreatmentGen
-  PYTHON_VERSION: "3.12"
-  MODAL_VERSION: "1.2.1"
 
 jobs:
   deploy_dev:
@@ -24,47 +19,33 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.setver.outputs.version }}
-    environment: dev
 
     env:
-      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID:     ${{ secrets.MODAL_SPRINTRAY_AI_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_SPRINTRAY_AI_TOKEN_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
       - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
+        with: { python-version: "3.10" }
 
       - name: 📦 Install Modal CLI & jq
         run: |
           python -m pip install --upgrade pip
-          pip install "modal==${{ env.MODAL_VERSION }}" jq
+          pip install modal jq
 
-      - name: 🔐 Authenticate with Modal
-        run: |
-          modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
-
-      - name: 🔖 Compute and tag today's version (yy.mm.dd.n)
+      - name: 🔖 Compute today’s version (yy.mm.dd.n)
         id: setver
         run: |
           TODAY=$(date -u +'%y.%m.%d')
-          COUNT=$(git tag | grep "^$TODAY" | wc -l)
+          COUNT=$(
+            modal app history "$APP_NAME" -e dev --json 2>/dev/null \
+            | jq -r --arg D "$TODAY" \
+                '[.[].tag // empty | select(startswith($D))] | length'
+          )
           VERSION="$TODAY.$((COUNT+1))"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "::notice ::Creating version $VERSION"
-
-      - name: 🔖 Create and push version tag
-        uses: mathieudutour/github-tag-action@v6.1
-        id: tagger
-        with:
-          custom_tag: ${{ steps.setver.outputs.version }}
-          tag_prefix: ""
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          echo "version=$VERSION" >>"$GITHUB_OUTPUT"
+          echo "::notice ::Deploying version $VERSION to dev"
 
       - name: 🚀 Deploy to dev
         run: |
@@ -76,43 +57,38 @@ jobs:
   promote_stg:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.stage == 'stg' }}
     runs-on: ubuntu-latest
-    environment: stg
 
     env:
-      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID:     ${{ secrets.MODAL_SPRINTRAY_AI_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_SPRINTRAY_AI_TOKEN_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: 📦 Install Modal CLI v1.2.1 & jq
-        run: pip install "modal==1.2.1" jq
+        with: { python-version: "3.10" }
+      - name: 📦 Install Modal CLI & jq
+        run: pip install modal jq
 
       - name: 🔐 Authenticate with Modal
         run: |
-          modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+          modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET" --profile=sprintray-ai
 
-      - name: 🔄 Promote latest dev tag to staging
+      - name: 🔄 Promote latest dev build → stg
         run: |
-          VERSION=$(modal app history "$APP_NAME" -e dev --json | jq -r '.[0].tag // .[0].Tag // empty')
-          if [ -z "$VERSION" ]; then
-            echo "::error ::No version found to promote"
-            exit 1
+          VERSION=$(modal app history "$APP_NAME" -e dev --json \
+                     | jq -r '.[0].Tag')
+          echo "::notice ::Promoting $VERSION to staging"
+          
+          # Get the commit hash for this version from dev
+          COMMIT=$(modal app history "$APP_NAME" -e dev --json \
+                   | jq -r '.[0].Commit // empty' | sed 's/\*$//')
+          
+          # Deploy to staging with the same tag and commit
+          if [ -n "$COMMIT" ] && [ "$COMMIT" != "null" ]; then
+            echo "::notice ::Deploying from commit $COMMIT with tag $VERSION"
+            git checkout "$COMMIT" 2>/dev/null || echo "::warning ::Could not checkout commit, using current code"
           fi
-
-          echo "::notice ::Checking out tag $VERSION"
-          git fetch origin "refs/tags/$VERSION:refs/tags/$VERSION"
-          git checkout "tags/$VERSION" || {
-            echo "::error ::Could not checkout tag $VERSION"; exit 1;
-          }
-
+          
           modal deploy deploy.py \
             --name "$APP_NAME" \
             -e stg \
@@ -121,43 +97,38 @@ jobs:
   promote_prod:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.stage == 'prod' }}
     runs-on: ubuntu-latest
-    environment: prod
 
     env:
-      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID:     ${{ secrets.MODAL_SPRINTRAY_AI_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_SPRINTRAY_AI_TOKEN_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: 📦 Install Modal CLI v1.2.1 & jq
-        run: pip install "modal==1.2.1" jq
+        with: { python-version: "3.10" }
+      - name: 📦 Install Modal CLI & jq
+        run: pip install modal jq
 
       - name: 🔐 Authenticate with Modal
         run: |
-          modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET"
+          modal token set --token-id "$MODAL_TOKEN_ID" --token-secret "$MODAL_TOKEN_SECRET" --profile=sprintray-ai
 
-      - name: 🔄 Promote latest staging tag to prod
+      - name: 🔄 Promote latest stg build → prod
         run: |
-          VERSION=$(modal app history "$APP_NAME" -e stg --json | jq -r '.[0].tag // .[0].Tag // empty')
-          if [ -z "$VERSION" ]; then
-            echo "::error ::No staging version found to promote"
-            exit 1
+          VERSION=$(modal app history "$APP_NAME" -e stg --json \
+                     | jq -r '.[0].Tag')
+          echo "::notice ::Promoting $VERSION to production"
+          
+          # Get the commit hash for this version from stg
+          COMMIT=$(modal app history "$APP_NAME" -e stg --json \
+                   | jq -r '.[0].Commit // empty' | sed 's/\*$//')
+          
+          # Deploy to production with the same tag and commit
+          if [ -n "$COMMIT" ] && [ "$COMMIT" != "null" ]; then
+            echo "::notice ::Deploying from commit $COMMIT with tag $VERSION"
+            git checkout "$COMMIT" 2>/dev/null || echo "::warning ::Could not checkout commit, using current code"
           fi
-
-          echo "::notice ::Checking out tag $VERSION"
-          git fetch origin "refs/tags/$VERSION:refs/tags/$VERSION"
-          git checkout "tags/$VERSION" || {
-            echo "::error ::Could not checkout tag $VERSION"; exit 1;
-          }
-
+          
           modal deploy deploy.py \
             --name "$APP_NAME" \
             -e prod \
